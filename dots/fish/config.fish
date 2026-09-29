@@ -3,15 +3,16 @@ if status is-interactive
     # No greeting
     set fish_greeting
 
-    # dynisle: the black hole on every new terminal. It sat in ~/.zshrc before
-    # and never ran, because kitty and foot both start FISH, not zsh.
-    # The black hole and the table need 106 columns side by side; in a
-    # narrower window only the table is shown, so nothing wraps and breaks.
+    # dynisle: the black hole greeting on every new terminal - hardware left,
+    # software right. scripts/fetch.py lays it out (and adapts to narrow
+    # windows); fastfetch finds the facts. It sat in ~/.zshrc before and never
+    # ran, because kitty and foot both start FISH, not zsh.
     if test "$TERM" != "linux"; and command -q fastfetch
-        if test $COLUMNS -ge 106
-            fastfetch
+        set -l greet ~/.config/quickshell/dynisle/scripts/fetch.py
+        if test -f $greet
+            python3 $greet
         else
-            fastfetch --logo none
+            fastfetch
         end
     end
 

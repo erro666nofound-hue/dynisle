@@ -1901,17 +1901,21 @@ a replacement for looking.
      Kernel-level lock (hwdb `KEYBOARD_KEY_44=reserved`) is a script the user
      runs with sudo, kept outside the repo: ~/.cache/dynisle/f10-off.sh.
 
-138. **fastfetch: coloured ASCII black hole + tree layout.** `scripts/blackhole.py`
-     draws it in characters (` .'-:=+*#%@`), truecolour from matugen primary
-     (ring) and tertiary (disk), into ~/.config/fastfetch/blackhole.ansi,
-     shown as a `file-raw` logo 48x19 (cells taken as 2.2x taller than wide,
-     so it comes out round). It is generated, not tracked: install.sh runs
-     it, and `Wallpapers.recolour()` reruns it (~0.1s). The info side is a
-     GREY table on purpose (user, 09-29): uppercase labels, white icons, the
-     right border drawn with `\e[s \e[38C│ \e[u` in each key so any value
-     length lines up; long fields are cut with `{name:30}`. Needs 106 columns;
-     fish runs `fastfetch --logo none` below that. kitty font_size 11 -> 12
-     because the user wanted the text bigger, and that is the only lever.
+138. **Terminal greeting: ray-traced black hole in the middle, hardware left,
+     software right** (user, 09-29: "để blackhole ở giữa", the Gargantua
+     angle, sides minimal with ONE edge each - no full table).
+     `scripts/blackhole-trace.py` ray-traces a Schwarzschild hole + thin disk
+     at 84 deg (u'' = -u + 3u^2, first disk crossing wins, photon ring added
+     at b = 3*sqrt(3)) ONCE into `scripts/blackhole-map.json` (~5 s, committed).
+     `scripts/blackhole.py` paints that map in matugen colours into
+     ~/.config/fastfetch/blackhole.ansi - install.sh and
+     `Wallpapers.recolour()` run it. `scripts/fetch.py` (fish hook) gets facts
+     from `fastfetch --config none --format json` and lays out 3 columns
+     (needs ~106 cols; falls back to hole-on-top, then columns only); ~70 ms.
+     fastfetch would name fetch.py as the shell, so the shell is read from
+     the script's parent process. Text grey, icons white, 90%+ in red.
+     kitty font_size 11 -> 12 (user wanted text bigger). Plain `fastfetch`
+     still shows the older boxed table config.
 
 
 ## If you're about to contradict one of these
