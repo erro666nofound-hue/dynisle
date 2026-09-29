@@ -1,0 +1,8 @@
+# /etc/greetd/config.toml for dynisle: tuigreet on tty1, launching Hyprland
+# through uwsm (see wayland-session, installed to /usr/local/bin).
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --remember --remember-session --cmd /usr/local/bin/wayland-session"
+user = "greeter"

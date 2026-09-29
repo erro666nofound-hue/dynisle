@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""Ask the XDG desktop portal for one or more directories.
+
+This is the same dialog the browser gets for a file upload - the portal hands
+the request to whichever backend is installed (here xdg-desktop-portal-gtk), so
+it is styled, decorated and floated by the toolkit rather than by us. `yad` can
+never match it: without a header bar GTK draws no rounded corners and no title,
+which is exactly the difference the user pointed at.
+
+Prints one absolute path per line. Prints nothing and exits 0 if cancelled.
+"""
+
+import sys
+
+import gi
+
+gi.require_version("Gio", "2.0")
+from gi.repository import Gio, GLib  # noqa: E402
+
+PORTAL = "org.freedesktop.portal.Desktop"
+PORTAL_PATH = "/org/freedesktop/portal/desktop"
+TOKEN = "dynisle_pick_folder"
+
+
+def main() -> int:
+    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    loop = GLib.MainLoop()
+    chosen: list[str] = []
+
+    def on_response(_conn, _sender, _path, _iface, _signal, params):
+        response, results = params.unpack()
+        if response == 0:
+            chosen.extend(results.get("uris", []))
+        loop.quit()
+
+    # Subscribed BEFORE the call, on the path the portal will use. Subscribing
+    # afterwards is a race the spec explicitly tells you to avoid: a backend
+    # that answers immediately would reply before anyone was listening.
+    unique = bus.get_unique_name().lstrip(":").replace(".", "_")
+    request_path = f"{PORTAL_PATH}/request/{unique}/{TOKEN}"
+    bus.signal_subscribe(PORTAL, "org.freedesktop.portal.Request", "Response",
+                         request_path, None, Gio.DBusSignalFlags.NONE,
+                         on_response)
+
+    options = {
+        "handle_token": GLib.Variant("s", TOKEN),
+        "directory": GLib.Variant("b", True),
+        "multiple": GLib.Variant("b", True),
+        "accept_label": GLib.Variant("s", "Add"),
+    }
+
+    try:
+        bus.call_sync(PORTAL, PORTAL_PATH,
+                      "org.freedesktop.portal.FileChooser", "OpenFile",
+                      GLib.Variant("(ssa{sv})",
+                                   ("", "Add a wallpaper folder", options)),
+                      GLib.VariantType("(o)"), Gio.DBusCallFlags.NONE,
+                      -1, None)
+    except GLib.Error as err:
+        print(f"pick-folder: portal refused the request: {err.message}",
+              file=sys.stderr)
+        return 1
+
+    loop.run()
+
+    for uri in chosen:
+        try:
+            path, _host = GLib.filename_from_uri(uri)
+        except GLib.Error:
+            continue
+        print(path)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

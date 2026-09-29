@@ -1,0 +1,38 @@
+#!/bin/sh
+# Bake the lock screen's background ONCE, when the wallpaper changes.
+#
+# Why this exists: hyprlock is started by hypridle's `before_sleep_cmd`, which
+# runs INSIDE the suspend window. Asking it to load a 1672x941 PNG and blur it
+# 4 passes on a Broadwell iGPU at that exact moment wedged the machine hard -
+# the screen froze with the lock screen half-drawn and the sound card looped its
+# last DMA buffer, which is what a kernel that has stopped scheduling sounds
+# like. Nothing was logged, because a wedged kernel cannot log.
+#
+# So the GPU does no work at lock time at all: this writes an image that is
+# already downscaled, already blurred and already darkened, and hyprlock draws
+# it flat with `blur_passes = 0`.
+set -eu
+
+src="${1:-}"
+out="$HOME/.cache/dynisle/lock.png"
+[ -n "$src" ] && [ -f "$src" ] || exit 0
+
+mkdir -p "$HOME/.cache/dynisle"
+
+# Screen-sized, so decoding is trivial too. Falls back to 1366x768.
+geom=$(hyprctl monitors -j 2>/dev/null \
+    | sed -n 's/.*"width": \([0-9]*\).*/\1/p' | head -1)
+w=${geom:-1366}
+h=$(( w * 9 / 16 ))
+
+# -resize before -blur: blurring a downscaled image is far cheaper and looks
+# the same once it is this soft. sigma scales with the width so the result is
+# the same softness on any screen.
+magick "$src" \
+    -resize "${w}x${h}^" -gravity center -extent "${w}x${h}" \
+    -blur "0x$(( w / 48 ))" \
+    -modulate 62,105 \
+    -attenuate 0.35 +noise Gaussian \
+    "$out.tmp.png"
+
+mv -f "$out.tmp.png" "$out"

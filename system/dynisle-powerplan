@@ -1,0 +1,53 @@
+#!/bin/sh
+# dynisle power plans.
+#
+# Why this exists: power-profiles-daemon can do nothing on this machine. The CPU
+# is an i5-5200U (Broadwell) with NO HWP, so intel_pstate never exposes an
+# energy_performance_preference knob, in active mode or passive. Setting a PPD
+# profile left governor, EPP and max frequency identical in all three cases -
+# measured, see vault/notes.md fact 59.
+#
+# WHICH knob: not `scaling_max_freq`. intel_pstate is in PASSIVE mode here and
+# governs the policy ceiling itself, so writes to scaling_max_freq were quietly
+# ignored - asking for 2.2 GHz read back as 2.7 GHz every time, even with the
+# governor left alone. The knobs that work are the driver's own:
+#
+#   no_turbo      1 pins the ceiling to the base clock (2.2 GHz); 0 allows
+#                 turbo (2.7 GHz). On a 15W part turbo is where the heat and
+#                 the watts are - measured 22.5 W and 78 C at full turbo.
+#   max_perf_pct  a percentage of whatever the ceiling then is.
+#
+# Order matters: the governor is written FIRST, because changing it can reset
+# the policy limits underneath.
+#
+# Measured on this laptop (29 Wh of a 50 Wh design battery, 58% health):
+#   idle                     7.2 W   ~4.1 h
+#   four cores at 2.5 GHz   22.5 W   ~1.3 h, package 78 C
+set -u
+
+case "${1:-}" in
+    saver)       governor=powersave;   turbo=1; pct=55  ;;
+    balanced)    governor=schedutil;   turbo=1; pct=100 ;;
+    performance) governor=performance; turbo=0; pct=100 ;;
+    *)
+        echo "usage: dynisle-powerplan saver|balanced|performance" >&2
+        exit 2
+        ;;
+esac
+
+for policy in /sys/devices/system/cpu/cpu[0-9]*/cpufreq; do
+    [ -w "$policy/scaling_governor" ] && printf '%s' "$governor" > "$policy/scaling_governor"
+done
+
+pstate=/sys/devices/system/cpu/intel_pstate
+[ -w "$pstate/no_turbo" ]     && printf '%s' "$turbo" > "$pstate/no_turbo"
+[ -w "$pstate/max_perf_pct" ] && printf '%s' "$pct"   > "$pstate/max_perf_pct"
+
+# Report what actually took, not what was asked for - the whole reason this
+# rewrite exists is that the first version reported success on a write the
+# kernel had ignored.
+printf 'governor=%s no_turbo=%s max_perf_pct=%s ceiling=%sMHz\n' \
+    "$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)" \
+    "$(cat "$pstate/no_turbo" 2>/dev/null)" \
+    "$(cat "$pstate/max_perf_pct" 2>/dev/null)" \
+    "$(( $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq) / 1000 ))"

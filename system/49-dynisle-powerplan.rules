@@ -1,0 +1,20 @@
+// Lets dynisle change the CPU power plan without asking for a password.
+//
+// The action id is `org.freedesktop.policykit.exec` - NOT
+// `...policykit.exec.path`, which is what this rule said at first and which
+// matches nothing. polkit then fell through to asking for a password, pkexec
+// sat waiting for an agent, and repeated attempts tripped pam_faillock.
+// The id is confirmed by polkitd's own log line:
+//   "FAILED to authenticate to gain authorization for action
+//    org.freedesktop.policykit.exec"
+//
+// Scoped as tightly as polkit allows: one exact program path, one user, and
+// nothing else. The helper accepts exactly three words and writes only the
+// governor and the intel_pstate ceiling, so this grants no general root.
+polkit.addRule(function (action, subject) {
+    if (action.id === "org.freedesktop.policykit.exec"
+        && action.lookup("program") === "/usr/local/bin/dynisle-powerplan"
+        && subject.user === "toast") {
+        return polkit.Result.YES;
+    }
+});

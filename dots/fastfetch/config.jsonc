@@ -1,0 +1,17 @@
+// dynisle: the black hole, on every new terminal (hooked from fish/config.fish).
+// fastfetch rather than neofetch: neofetch is unmaintained and is not in Arch's
+// official repositories any more, so a fresh install could not get it.
+{
+    "logo": {
+        "type": "file",
+        "source": "~/.config/fastfetch/blackhole.txt",
+        "color": { "1": "blue", "2": "cyan", "3": "white", "4": "light_black" },
+        "padding": { "right": 3 }
+    },
+    "display": { "separator": " · " },
+    "modules": [
+        "title", "separator",
+        "os", "kernel", "uptime", "shell", "wm", "terminal", "cpu", "memory",
+        "break", "colors"
+    ]
+}

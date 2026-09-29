@@ -1,0 +1,11 @@
+# State the shell writes for itself - per machine, full of local paths.
+config/wallpaper.json
+config/themes.json
+
+# Style references from other people's work; not ours to publish.
+vault/assets/
+
+# Backups that tools and editors leave behind.
+*.bak
+*.bak-*
+__pycache__/

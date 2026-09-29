@@ -1,0 +1,51 @@
+[config]
+version_check = false
+
+[templates.m3colors]
+input_path = '~/.config/matugen/templates/colors.json'
+output_path = '~/.local/state/quickshell/user/generated/colors.json'
+
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/hyprland/colors.lua'
+output_path = '~/.config/hypr/hyprland/colors.lua'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprland/hyprlock-colors.conf'
+output_path = '~/.config/hypr/hyprlock/colors.conf'
+
+[templates.fuzzel]
+input_path = '~/.config/matugen/templates/fuzzel/fuzzel_theme.ini'
+output_path = '~/.config/fuzzel/fuzzel_theme.ini'
+
+[templates.gtk3]
+input_path = '~/.config/matugen/templates/gtk-3.0/gtk.css'
+output_path = '~/.config/gtk-3.0/gtk.css'
+
+# DISABLED 2026-09-02. ~/.config/gtk-4.0/gtk.css is a SYMLINK into
+# /usr/share/themes/adw-gtk3-dark/, which is root-owned, so matugen died with
+# "Permission denied" trying to write through it - and because one failing
+# template aborts the whole run, NOTHING was generated, including the
+# colors.json the shell reads. GTK4 was never actually being recoloured anyway:
+# the symlink points at a fixed theme.
+# [templates.gtk4]
+# input_path = '~/.config/matugen/templates/gtk-4.0/gtk.css'
+# output_path = '~/.config/gtk-4.0/gtk.css'
+
+[templates.kde_colors]
+input_path = '~/.config/matugen/templates/kde/color.txt'
+output_path = '~/.local/state/quickshell/user/generated/color.txt'
+
+[templates.wallpaper]
+input_path = '~/.config/matugen/templates/wallpaper.txt'
+output_path = '~/.local/state/quickshell/user/generated/wallpaper/path.txt'
+
+# kitty. Its config already had an `include` pointing at this path; nothing was
+# writing it, which is why the terminal kept a stale palette while everything
+# else followed the wallpaper.
+[templates.foot]
+input_path = '~/.config/matugen/templates/terminal/foot-colors.ini'
+output_path = '~/.config/foot/colors.ini'
+
+[templates.kitty]
+input_path = '~/.config/matugen/templates/terminal/kitty-theme.conf'
+output_path = '~/.local/state/quickshell/user/generated/terminal/kitty-theme.conf'
