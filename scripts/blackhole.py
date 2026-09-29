@@ -13,7 +13,9 @@ it falls back to gold.
 """
 import json, math, os, random, sys
 
-COLS, ROWS = 44, 17                # a terminal cell is ~2x taller than wide
+COLS, ROWS = 48, 19
+ASPECT = 2.2                       # a kitty cell is 2.2x taller than wide
+UNIT = 9.0                         # columns per shadow radius
 OUT = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/.config/fastfetch/blackhole.ansi")
 PALETTE = os.path.expanduser("~/.local/state/quickshell/user/generated/colors.json")
 RAMP = " .'-:=+*#%@"
@@ -54,21 +56,24 @@ def light(x, y):
     radius is 1. Brightness -1 means inside the shadow."""
     r = math.hypot(x, y)
 
-    # accretion disk, nearly edge-on: a long flat ellipse through the middle
+    # accretion disk, nearly edge-on: a long flat band through the middle,
+    # brightest near the hole, and on the left, the side coming towards us
+    OUTER = 2.6
     d = math.hypot(x, y / 0.13)
     disk = 0.0
-    if 1.2 < d < 3.05:
-        t = (d - 1.2) / 1.85
-        disk = (1 - t) ** 1.3 * (1.05 + 0.4 * (-x / 3.05))   # left side coming at us
+    if d < OUTER:
+        t = max(0.0, d - 1.0) / (OUTER - 1.0)
+        disk = (1 - t) ** 1.2 * (1.0 + 0.35 * (-x / OUTER))
     if r < 1.0:
-        # only the near half of the disk passes in front of the shadow
-        return (min(disk, 1.0), 1.0) if (disk > 0.05 and y > -0.14) else (-1.0, 0.0)
+        # the near side of the disk crosses in front of the shadow as one
+        # unbroken band, a little below the middle; the rest is black
+        return (min(disk, 1.0), 1.0) if (disk > 0.05 and y > -0.06) else (-1.0, 0.0)
 
     ring = max(0.0, 1 - abs(r - 1.08) / 0.2) ** 1.1          # photon ring
     f = max(0.0, 1 - (r - 1.0) / 1.05)
     up = max(0.0, -y) / r
-    halo = f ** 1.25 * (0.40 + 0.60 * up)                      # lensed far side, over the top
-    halo += f ** 2.4 * 0.40 * max(0.0, y) / r                 # and a thin copy underneath
+    halo = f ** 1.2 * (0.55 + 0.45 * up)                      # lensed far side, over the top
+    halo += f ** 1.6 * 0.30 * max(0.0, y) / r                 # and a thin copy underneath
     body = max(ring, halo * 0.95)
     v = max(body, disk)
     return min(v, 1.0), (disk / v if v > 0 else 0.0)
@@ -79,8 +84,8 @@ def cell(c, r):
     lit, share, dark, n = 0.0, 0.0, 0, 0
     for sy in range(4):
         for sx in range(4):
-            x = (c + (sx + 0.5) / 4 - COLS / 2) / 7.2
-            y = (r + (sy + 0.5) / 4 - ROWS / 2) * 2.05 / 7.2
+            x = (c + (sx + 0.5) / 4 - COLS / 2) / UNIT
+            y = (r + (sy + 0.5) / 4 - ROWS / 2) * ASPECT / UNIT
             v, s = light(x, y)
             n += 1
             if v < 0:
@@ -101,8 +106,8 @@ def render():
         for c in range(COLS):
             v, s, dark = cell(c, r)
             if v < 0.035 or dark > 0.7:
-                x = (c - COLS / 2) / 7.2
-                y = (r - ROWS / 2) * 2.05 / 7.2
+                x = (c - COLS / 2) / UNIT
+                y = (r - ROWS / 2) * ASPECT / UNIT
                 if dark == 0 and math.hypot(x, y) > 2.1 and random.random() < 0.02:
                     line.append((random.choice(".·+*"), mix((90, 95, 110), RING, 0.3)))
                 else:
@@ -130,7 +135,7 @@ def ansi(rows):
 def preview(rows, path):
     from PIL import Image, ImageDraw, ImageFont
     font = ImageFont.truetype("/usr/share/fonts/TTF/JetBrainsMonoNerdFontMono-Regular.ttf", 20)
-    cw, chh = 12, 25
+    cw, chh = 10, 22
     img = Image.new("RGB", (COLS * cw + 40, ROWS * chh + 40), (17, 19, 24))
     draw = ImageDraw.Draw(img)
     for r, line in enumerate(rows):

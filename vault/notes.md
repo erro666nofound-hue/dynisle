@@ -1904,10 +1904,14 @@ a replacement for looking.
 138. **fastfetch: coloured ASCII black hole + tree layout.** `scripts/blackhole.py`
      draws it in characters (` .'-:=+*#%@`), truecolour from matugen primary
      (ring) and tertiary (disk), into ~/.config/fastfetch/blackhole.ansi,
-     shown as a `file-raw` logo 44x17. It is generated, not tracked: install.sh
-     runs it, and `Wallpapers.recolour()` reruns it (~0.1s). The info side uses
-     ANSI slots only, so kitty's matugen theme colours it. Terminal labels are
-     faint (`2;37`); icons need `22;` first or they inherit the faint.
+     shown as a `file-raw` logo 48x19 (cells taken as 2.2x taller than wide,
+     so it comes out round). It is generated, not tracked: install.sh runs
+     it, and `Wallpapers.recolour()` reruns it (~0.1s). The info side is a
+     GREY table on purpose (user, 09-29): uppercase labels, white icons, the
+     right border drawn with `\e[s \e[38C│ \e[u` in each key so any value
+     length lines up; long fields are cut with `{name:30}`. Needs 106 columns;
+     fish runs `fastfetch --logo none` below that. kitty font_size 11 -> 12
+     because the user wanted the text bigger, and that is the only lever.
 
 
 ## If you're about to contradict one of these

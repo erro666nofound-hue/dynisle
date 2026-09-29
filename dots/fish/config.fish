@@ -5,8 +5,14 @@ if status is-interactive
 
     # dynisle: the black hole on every new terminal. It sat in ~/.zshrc before
     # and never ran, because kitty and foot both start FISH, not zsh.
+    # The black hole and the table need 106 columns side by side; in a
+    # narrower window only the table is shown, so nothing wraps and breaks.
     if test "$TERM" != "linux"; and command -q fastfetch
-        fastfetch
+        if test $COLUMNS -ge 106
+            fastfetch
+        else
+            fastfetch --logo none
+        end
     end
 
     # Use starship
