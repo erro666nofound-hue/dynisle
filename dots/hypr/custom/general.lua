@@ -15,7 +15,15 @@ local product = io.open("/sys/class/dmi/id/product_name", "r")
 local model = product and product:read("*l") or ""
 if product then product:close() end
 if model == "TP300LAB" then
-    for _, mods in ipairs({ "", "SHIFT + ", "CTRL + ", "ALT + ", "CTRL + SHIFT + " }) do
+    -- MỌI tổ hợp Shift/Ctrl/Alt/Super (16 kiểu). Hyprland không có "mọi
+    -- modifier", và bản đầu quên Super: một F10 ma rơi đúng lúc giữ Super
+    -- lọt vào kitty, rồi kitty tự lặp nó 34 lần ("^[[21~^[[21~...").
+    local names = { "SHIFT", "CTRL", "ALT", "SUPER" }
+    for mask = 0, 15 do
+        local mods = ""
+        for bit = 1, 4 do
+            if mask & (1 << (bit - 1)) ~= 0 then mods = mods .. names[bit] .. " + " end
+        end
         hl.bind(mods .. "F10", hl.dsp.exec_cmd("true"), { description = "Nuốt phím F10 ma" })
     end
 end

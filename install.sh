@@ -53,8 +53,10 @@ PACKAGE_LIST=(
     libnotify pacman-contrib imagemagick xdg-utils polkit cliphist fuzzel rsync
     # sound
     pipewire pipewire-pulse wireplumber rtkit
-    # terminals and the prompt
-    kitty foot fish starship eza fastfetch
+    # terminals and the prompt (python draws the fastfetch black hole)
+    kitty foot fish starship eza fastfetch python
+    # file manager - SUPER + E opens it
+    nautilus
     # fonts (Google Sans Flex is not packaged; it ships in fonts/)
     ttf-jetbrains-mono-nerd ttf-material-symbols-variable
     # Vietnamese typing
@@ -69,7 +71,6 @@ TRACKED=(
     matugen
     kitty
     fastfetch/config.jsonc
-    fastfetch/blackhole.txt
     foot/foot.ini
     fuzzel/fuzzel.ini
     fish/config.fish
@@ -87,6 +88,8 @@ EXCLUDES=(
     --exclude='*.bak*' --exclude='*.old' --exclude='*.new'
     --exclude='_unused/' --exclude='monitors.*' --exclude='workspaces.*'
     --exclude='lumen.conf' --exclude='__restore_video_wallpaper.sh'
+    # lives only in the repo; --collect's --delete must never remove it
+    --exclude='LICENSE-*'
 )
 
 # ---------------------------------------------------------------------------
@@ -199,6 +202,11 @@ fi
 if [[ ! -f "$HOME/.cache/dynisle/lock.png" ]]; then
     run magick -size 1920x1080 xc:'#121416' "$HOME/.cache/dynisle/lock.png"
 fi
+# The fastfetch black hole is drawn in the palette's colours, so it is made
+# here rather than shipped; picking a wallpaper redraws it.
+run python3 "$REPO/scripts/blackhole.py"
+# Folders open in nautilus (from the browser's downloads, for example).
+run xdg-mime default org.gnome.Nautilus.desktop inode/directory
 
 # 6. things that need root --------------------------------------------------
 if ((SYSTEM)); then

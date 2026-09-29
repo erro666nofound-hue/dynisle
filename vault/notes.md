@@ -1891,12 +1891,23 @@ a replacement for looking.
      own - 28 times in 3 minutes during one episode, then nearly none: it comes
      in waves. F10 threw Chrome's focus to its menu (breaking Telex "ee" -> ê
      mid-word), Shift+F10 opened Discord's context menu, Roblox raised its
-     graphics. `custom/general.lua` binds F10 (and its Shift/Ctrl/Alt variants)
-     to a no-op ONLY when /sys/class/dmi/id/product_name is TP300LAB, so
+     graphics. `custom/general.lua` binds F10 under all 16 modifier combos
+     (SUPER included - a SUPER+F10 slipped through the first version) to a
+     no-op ONLY when /sys/class/dmi/id/product_name is TP300LAB, so
      Hyprland swallows it here and other machines keep F10. Not caused by any
      program: injected input shows up as its own device, and none sent F10.
      The autoclickers found on the way (GClicker, Toast Clicker, leftovers of
      XClicker and a Flatpak clicker) were removed and ydotoold disabled.
+     Kernel-level lock (hwdb `KEYBOARD_KEY_44=reserved`) is a script the user
+     runs with sudo, kept outside the repo: ~/.cache/dynisle/f10-off.sh.
+
+138. **fastfetch: coloured ASCII black hole + tree layout.** `scripts/blackhole.py`
+     draws it in characters (` .'-:=+*#%@`), truecolour from matugen primary
+     (ring) and tertiary (disk), into ~/.config/fastfetch/blackhole.ansi,
+     shown as a `file-raw` logo 44x17. It is generated, not tracked: install.sh
+     runs it, and `Wallpapers.recolour()` reruns it (~0.1s). The info side uses
+     ANSI slots only, so kitty's matugen theme colours it. Terminal labels are
+     faint (`2;37`); icons need `22;` first or they inherit the faint.
 
 
 ## If you're about to contradict one of these

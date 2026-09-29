@@ -847,3 +847,7 @@ output comes through a plain pipe immediately.
 - Found on the way: terminals run fish, so the neofetch hook never ran (now
   fastfetch in config.fish); hyprsunset was never started, so Night light was
   dead (now a user unit).
+- Ghost F10 found and swallowed (fact 137). fastfetch redone as a coloured
+  ASCII black hole that follows the palette (fact 138). install.sh now also
+  installs nautilus (SUPER + E) and makes it the folder handler. Repo pushed
+  to GitHub as public: erro666nofound-hue/dynisle.

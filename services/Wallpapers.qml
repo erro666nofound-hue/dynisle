@@ -156,10 +156,12 @@ Singleton {
         // spending two seconds of CPU costs nothing. Doing it at lock time
         // instead meant hyprlock blurring a full-size image inside the suspend
         // window, which wedged the machine (notes.md fact 126).
+        // The fastfetch black hole is redrawn in the new colours too (~0.2s).
         recolourProc.running = false;
         recolourProc.command = ["sh", "-c",
             `${source}; `
             + `pkill -USR1 -x kitty || true; `
+            + `python3 '${Quickshell.shellPath("scripts/blackhole.py")}' || true; `
             + (root.current.length > 0
                 ? `'${Quickshell.shellPath("scripts/lock-wallpaper")}' '${root.current}' || true` : "true")];
         recolourProc.running = true;

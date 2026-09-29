@@ -12,7 +12,7 @@ notifications, wallpaper picker, session menu, screenshots.
 
    ```sh
    sudo pacman -S --needed git
-   git clone <this repo's URL> ~/.config/quickshell/dynisle
+   git clone https://github.com/erro666nofound-hue/dynisle ~/.config/quickshell/dynisle
    ~/.config/quickshell/dynisle/install.sh
    ```
 
@@ -56,6 +56,7 @@ git add -A && git commit -m "update configs" && git push
 
 ## Credits
 
-- The Hyprland config in `dots/hypr/hyprland/` started from
-  [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) (GPL-3.0).
+- The Hyprland config in `dots/hypr/` started from
+  [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) and stays under
+  its GPL-3.0 licence (`dots/hypr/LICENSE-end-4-dots-hyprland.txt`).
 - Google Sans Flex: SIL Open Font License (`fonts/GoogleSansFlex-LICENSE.txt`).
