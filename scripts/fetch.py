@@ -168,27 +168,32 @@ def main():
     art_w = max((width(l) for l in art), default=0)
     left = left_block("HARDWARE", hardware(f))
     right = right_block("SOFTWARE", software(f))
-    lw, rw = max(map(width, left)), max(map(width, right))
+    # Both sides get the same width, so the hole lands dead centre; the left
+    # side is pushed right, against its edge.
+    side = max(max(map(width, left)), max(map(width, right)))
+    left = [" " * (side - width(l)) + l for l in left]
     cols = shutil.get_terminal_size((120, 40)).columns
 
-    if art and cols >= lw + rw + art_w + 6:
-        body = beside([(left, lw), (art, art_w), (right, rw)], 3)
-    elif art and cols >= max(art_w, lw + rw + 4):
-        body = [l + RESET for l in art] + [""] + beside([(left, lw), (right, rw)], 4)
+    if art and cols >= 2 * side + art_w + 6:
+        sections = [beside([(left, side), (art, art_w), (right, side)], 3)]
+    elif art and cols >= max(art_w, 2 * side + 4):
+        sections = [pad(art, art_w), [""], beside([(left, side), (right, side)], 4)]
     else:
-        body = left + [""] + right
+        sections = [left, [""], right]
 
     t = f.get("Title") or {}
     up = (f.get("Uptime") or {}).get("uptime")
-    footer = [f"\033[1m{grey(230)}{t.get('userName', '')}{RESET}{EDGE} @ \033[1m{grey(230)}{t.get('hostName', '')}"
-              + (f"{RESET}{EDGE}  ·  {DIM}up {uptime(up)}" if up else ""),
-              " ".join(f"\033[{c}m●" for c in range(30, 38))]
+    user = (f"\033[1m{grey(230)}{t.get('userName', '')}{RESET}{EDGE} @ "
+            f"\033[1m{grey(230)}{t.get('hostName', '')}"
+            + (f"{RESET}{EDGE}  ·  {DIM}up {uptime(up)}" if up else ""))
+    sections += [[""], [user]]
 
-    block_w = max(width(l) for l in body)
-    indent = " " * max(0, (cols - block_w) // 2)
-    out = ["", *(indent + l.rstrip() + RESET for l in body), ""]
-    for l in footer:
-        out.append(" " * max(0, (cols - width(l)) // 2) + l + RESET)
+    # each section is centred as one block, so its own columns stay aligned
+    out = [""]
+    for lines in sections:
+        w = max(width(l) for l in lines)
+        indent = " " * max(0, (cols - w) // 2)
+        out += [(indent + l).rstrip() + RESET if l.strip() else "" for l in lines]
     sys.stdout.write("\n".join(out) + "\n\n")
 
 

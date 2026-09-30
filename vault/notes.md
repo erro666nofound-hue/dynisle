@@ -1914,6 +1914,8 @@ a replacement for looking.
      (needs ~106 cols; falls back to hole-on-top, then columns only); ~70 ms.
      fastfetch would name fetch.py as the shell, so the shell is read from
      the script's parent process. Text grey, icons white, 90%+ in red.
+     Both sides are padded to the same width so the hole sits at the
+     window's centre (user, 09-30); no colour-dot row under user@host.
      kitty font_size 11 -> 12 (user wanted text bigger). Plain `fastfetch`
      still shows the older boxed table config.
 
