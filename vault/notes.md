@@ -1920,6 +1920,25 @@ a replacement for looking.
      still shows the older boxed table config.
 
 
+139. **Log lines that are NOT bugs - do not "fix" them** (checked 2026-09-30
+     against the running instance's own log, `qs log -i <id>`, 25 h uptime):
+     - `Member data of the object ClippingRectangle_QMLTYPE_n overrides a
+       member of the base object` - Quickshell's own
+       /usr/lib/qt6/qml/Quickshell/Widgets/ClippingRectangle.qml line 46
+       (`default property alias data`). Not our code.
+     - `QObject: Cannot create children for a parent that is in a different
+       thread` + `installEventFilter(): ... different thread` - once per
+       launch, the first app icon (tray, `IconImage` +
+       `Quickshell.iconPath`) is loaded on Qt's image-reader thread and the
+       KDE platform theme (`QT_QPA_PLATFORMTHEME=kde`) sets itself up there.
+       Harmless; changing the platform theme would change icon lookup.
+     - `QDBusError ... ServiceUnknown` / `Error updating property
+       org.mpris.MediaPlayer2.mpv.instance-...` - an mpv window closed while
+       its playback position was being read.
+     - `Unable to assign [undefined] to bool` at lines that do not match the
+       current files = a reload that caught a file half-way through an edit.
+       Check the line numbers against the file before believing it.
+
 ## If you're about to contradict one of these
 
 Stop and re-read the linked file in full first. If the user is actually
