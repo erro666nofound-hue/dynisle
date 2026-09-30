@@ -1928,8 +1928,9 @@ a replacement for looking.
        (`default property alias data`). Not our code.
      - `QObject: Cannot create children for a parent that is in a different
        thread` + `installEventFilter(): ... different thread` - once per
-       launch, the first app icon (tray, `IconImage` +
-       `Quickshell.iconPath`) is loaded on Qt's image-reader thread and the
+       launch, the first app icon (the launcher's pinned icons, pre-loaded
+       invisibly in Island.qml with `asynchronous: true`) is loaded on Qt's
+       image-reader thread and the
        KDE platform theme (`QT_QPA_PLATFORMTHEME=kde`) sets itself up there.
        Harmless; changing the platform theme would change icon lookup.
      - `QDBusError ... ServiceUnknown` / `Error updating property
