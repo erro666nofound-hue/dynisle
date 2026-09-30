@@ -142,6 +142,8 @@ PanelWindow {
 
                 implicitSize: Theme.launcherPinIcon
                 asynchronous: true
+                // must match the launcher's, or the cache entries differ
+                backer.autoTransform: Launcher.iconKey
                 source: Quickshell.iconPath(modelData.icon, "application-x-executable")
             }
         }

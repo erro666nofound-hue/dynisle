@@ -35,6 +35,29 @@ Singleton {
         .map(n => root.apps.find(a => a.name === n))
         .filter(a => a !== undefined)
 
+    // Qt keeps every decoded icon in a cache keyed by its URL, and the icon
+    // pre-warm in Island.qml holds the pinned ones for the shell's whole life.
+    // One lookup that lands mid-`pacman -Syu` (files half replaced) returns the
+    // grey fallback, and that fallback was then shown for good - every pinned
+    // app lost its icon until a restart (2026-09-30).
+    // So once the app list has changed and stayed quiet for a while (pacman's
+    // desktop-database hook is the last thing it runs), every launcher icon is
+    // loaded again under a new cache key. The key flips via `autoTransform`,
+    // which is part of Qt's cache key but changes nothing on an icon (it only
+    // rotates photos by their EXIF tag) - an extra URL parameter would not do:
+    // Quickshell reads everything after `?fallback=` as the fallback's name.
+    property int iconEpoch: 0
+    readonly property bool iconKey: root.iconEpoch % 2 === 0
+
+    onAppsChanged: iconSettle.restart()
+
+    Timer {
+        id: iconSettle
+
+        interval: 15000
+        onTriggered: root.iconEpoch++
+    }
+
     FileView {
         id: pinnedFile
 

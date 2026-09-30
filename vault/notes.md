@@ -1940,6 +1940,24 @@ a replacement for looking.
        current files = a reload that caught a file half-way through an edit.
        Check the line numbers against the file before believing it.
 
+140. **Launcher icons all grey after `pacman -Syu` = a cached fallback, not a
+     broken icon theme** (2026-09-30). Pinned apps with THEME icons showed the
+     grey `application-x-executable`; apps whose .desktop `Icon=` is a file
+     path (Blender, Steach, Stocking) were fine, and TYPING in the launcher
+     showed Firefox etc. correctly - so lookups worked. Qt caches decoded
+     images by URL + size + `autoTransform`, and the pre-warm in Island.qml
+     holds the pinned ones forever: one lookup mid-upgrade returned the
+     fallback and it stuck. Fix: `Launcher.iconEpoch` bumps 15 s after the
+     app list stops changing; every launcher `IconImage` sets
+     `backer.autoTransform: Launcher.iconKey`, so the icons load again under
+     a fresh key (proved with a file swapped on disk: same key -> old image,
+     flipped key -> new one). NOT a URL parameter: Quickshell's icon provider
+     takes everything after `?fallback=` as the fallback's name.
+     Ruled out on the way: rebuilding a hicolor icon-theme.cache under a
+     running shell does not lose existing icons (only new ones stay unseen
+     by `iconPath(name, true)` until restart); the KDE
+     `org.kde.KIconLoader.iconChanged` signal did not clear it.
+
 ## If you're about to contradict one of these
 
 Stop and re-read the linked file in full first. If the user is actually

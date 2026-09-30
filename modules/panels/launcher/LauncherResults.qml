@@ -161,6 +161,8 @@ Rectangle {
                     IconImage {
                         anchors.centerIn: parent
                         implicitSize: Theme.launcherPinIcon
+                        // the cache key the pre-warm uses (Launcher.iconKey)
+                        backer.autoTransform: Launcher.iconKey
                         source: Quickshell.iconPath(pin.modelData.icon, "application-x-executable")
                     }
 
@@ -276,6 +278,7 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             implicitSize: Theme.launcherIconSize
                             visible: row.isApp
+                            backer.autoTransform: Launcher.iconKey
                             source: row.isApp
                                 ? Quickshell.iconPath(row.modelData.entry.icon, "application-x-executable")
                                 : ""
