@@ -1985,6 +1985,21 @@ a replacement for looking.
      rerun update-chrome. chrome-flags.conf is tracked: --enable-wayland-ime
      is what lets fcitx5/Vietnamese typing reach Chrome on Wayland.
 
+143. **"Everything tiny on the new machine" = monitor scale, not dynisle px**
+     (2026-10-02). The tracked hyprland/general.lua rule is `scale = 1` for
+     every output; this machine's own scale lives in hypr/monitors.lua
+     (written by nwg-displays, excluded from dots/ as machine-specific), and
+     the new machine had neither the file nor nwg-displays. Converting
+     dynisle's px to screen fractions would have fixed only the island - apps
+     would still be tiny. Fix: `fix.sh` -> scripts/display-scale.py picks
+     scale = screen DPI / 118 (this laptop: 1366x768 on 293x165 mm = 118 dpi,
+     scale 1), 110 for external screens, clamped 1..3, snapped to a 1/120
+     step that divides the resolution evenly (1366x768 has none between 1 and
+     2). Screens from `hyprctl monitors -j`, else EDID (install.sh runs it
+     from a console with --if-missing). Writes monitors.lua + backup, reloads.
+     Checked: this machine -> 1.0 both ways; Hyprland's `hyprctl eval`
+     accepted the generated rule on a fake output name; nwg-displays added.
+
 ## If you're about to contradict one of these
 
 Stop and re-read the linked file in full first. If the user is actually

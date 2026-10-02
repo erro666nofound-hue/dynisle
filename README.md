@@ -16,6 +16,17 @@ notifications, wallpaper picker, session menu, screenshots.
 
 3. Reboot and log in on the tuigreet screen.
 
+Everything too small or too big on a new screen? `install.sh` already picks
+each screen's scale from its real size, and you can redo it any time (after
+plugging in another monitor, say):
+
+```sh
+~/.config/quickshell/dynisle/fix.sh          # from the screen's size
+~/.config/quickshell/dynisle/fix.sh 1.5      # or a scale you choose
+```
+
+`nwg-displays` (in the launcher) changes resolution and position too.
+
 What it sets up: Hyprland with all the keybinds, window blur and
 see-through windows, the shell, kitty/foot/fish/starship and the fastfetch
 greeting, nautilus, the dark GTK theme (adw-gtk3) and Papirus icons for

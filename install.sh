@@ -63,6 +63,8 @@ PACKAGE_LIST=(
     adw-gtk-theme papirus-icon-theme breeze breeze-icons plasma-integration
     # what keybinds call: colour picker, media keys, killall, volume mixer
     hyprpicker playerctl psmisc pavucontrol
+    # display settings (resolution, position, scale) - writes hypr/monitors.lua
+    nwg-displays
     # fonts (Google Sans Flex is not packaged; it ships in fonts/)
     ttf-jetbrains-mono-nerd ttf-material-symbols-variable
     # Vietnamese typing
@@ -246,6 +248,17 @@ if [[ -f /usr/share/applications/google-chrome.desktop ]]; then
         || warn "could not make Chrome the default browser"
 fi
 
+# Each screen's scale, from its real size: hypr/monitors.lua belongs to one
+# machine and is never copied, and without it Hyprland runs every screen at
+# scale 1 - everything tiny on a sharper screen. fix.sh redoes this any time.
+say "Screen scale"
+if ((DRY)); then
+    python3 "$REPO/scripts/display-scale.py" --dry-run | sed -n '1,/^$/p'
+else
+    python3 "$REPO/scripts/display-scale.py" --if-missing \
+        || warn "could not pick a screen scale - run ~/.config/quickshell/dynisle/fix.sh after logging in"
+fi
+
 # 5b. how windows look -------------------------------------------------------
 # The blur and see-through windows are Hyprland's (hypr/custom/dynisle-blur.lua)
 # plus kitty's own opacity, both copied above. This is what the apps read.
@@ -337,6 +350,7 @@ cat <<'EOF'
     Keys: SUPER + D launcher · SUPER + R control centre · SUPER + S session
           SUPER + A wallpaper · Shift + Print region shot · SUPER + Print full
           SUPER + E files (nautilus) · SUPER + W / SUPER + B Chrome
+          Things too small or too big? ~/.config/quickshell/dynisle/fix.sh
           (update Chrome later: ~/.config/quickshell/dynisle/scripts/update-chrome)
           Every other Hyprland keybind is the
           same as on the machine this was copied from.
