@@ -69,6 +69,8 @@ PACKAGE_LIST=(
     fcitx5 fcitx5-bamboo fcitx5-gtk fcitx5-qt fcitx5-configtool
     # keyring
     gnome-keyring
+    # to build Google Chrome from its AUR recipe (see step 1b)
+    base-devel git
 )
 
 # Paths under ~/.config. Directories are mirrored, files are copied.
@@ -89,6 +91,9 @@ TRACKED=(
     gtk-3.0/settings.ini
     gtk-4.0/settings.ini
     kdeglobals
+    # Chrome's Wayland + input-method flags: without --enable-wayland-ime,
+    # Vietnamese typing does not reach Chrome
+    chrome-flags.conf
 )
 
 # Never carried between machines: backups, this machine's display layout, and
@@ -150,6 +155,24 @@ if ((PACKAGES)); then
 elif ! command -v rsync >/dev/null; then
     echo "rsync is needed (sudo pacman -S rsync), or run without --no-packages." >&2
     exit 1
+fi
+
+# 1b. Google Chrome - the browser SUPER + W / SUPER + B open -----------------
+# Not in Arch's official repositories. A repository that has it (chaotic-aur,
+# if set up) is used first, so `pacman -Syu` keeps it updated; otherwise
+# scripts/update-chrome builds it from its AUR recipe (run that script again
+# to update Chrome later).
+if ((PACKAGES)); then
+    if command -v google-chrome-stable >/dev/null; then
+        note "Google Chrome is already installed"
+    elif pacman -Si google-chrome >/dev/null 2>&1; then
+        say "Installing Google Chrome"
+        run sudo pacman -S --needed --noconfirm google-chrome
+    else
+        say "Building Google Chrome from the AUR (a few minutes)"
+        run "$REPO/scripts/update-chrome" \
+            || warn "Google Chrome did not install - SUPER + W falls back to another browser"
+    fi
 fi
 
 # 2. the shell --------------------------------------------------------------
@@ -217,6 +240,11 @@ fi
 run python3 "$REPO/scripts/blackhole.py"
 # Folders open in nautilus (from the browser's downloads, for example).
 run xdg-mime default org.gnome.Nautilus.desktop inode/directory
+# Links open in Chrome, the browser the keybinds open.
+if [[ -f /usr/share/applications/google-chrome.desktop ]]; then
+    run xdg-settings set default-web-browser google-chrome.desktop \
+        || warn "could not make Chrome the default browser"
+fi
 
 # 5b. how windows look -------------------------------------------------------
 # The blur and see-through windows are Hyprland's (hypr/custom/dynisle-blur.lua)
@@ -308,6 +336,8 @@ cat <<'EOF'
 
     Keys: SUPER + D launcher · SUPER + R control centre · SUPER + S session
           SUPER + A wallpaper · Shift + Print region shot · SUPER + Print full
-          SUPER + E files (nautilus) · every other Hyprland keybind is the
+          SUPER + E files (nautilus) · SUPER + W / SUPER + B Chrome
+          (update Chrome later: ~/.config/quickshell/dynisle/scripts/update-chrome)
+          Every other Hyprland keybind is the
           same as on the machine this was copied from.
 EOF

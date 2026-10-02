@@ -1974,6 +1974,17 @@ a replacement for looking.
      installer against a fake HOME with gsettings stubbed out: keybinds,
      blur, rules, kitty, gtk, kdeglobals, starship, fish all byte-identical.
 
+142. **Browser = Google Chrome** (user choice, 2026-10-02, over Chromium which
+     this machine had as default - Arch's Chromium cannot sync a Google
+     account). SUPER+W and SUPER+B use `browser` from hypr/custom/variables.lua
+     (keybinds.lua loads custom variables before binding; checked inside the
+     running Hyprland with `hyprctl eval`). install.sh: chaotic-aur's package
+     if a repo has it, else `scripts/update-chrome` builds the AUR recipe
+     (repackages Google's .deb, sha512-pinned; a full build was run here:
+     147 s, checksums passed). An AUR build is NOT updated by pacman -Syu -
+     rerun update-chrome. chrome-flags.conf is tracked: --enable-wayland-ime
+     is what lets fcitx5/Vietnamese typing reach Chrome on Wayland.
+
 ## If you're about to contradict one of these
 
 Stop and re-read the linked file in full first. If the user is actually

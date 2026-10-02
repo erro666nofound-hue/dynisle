@@ -17,3 +17,8 @@ fileManager = "~/.config/hypr/hyprland/scripts/launch_first_available.sh 'nautil
 -- The default list put 'foot' first, so SUPER+Return had been opening foot all
 -- along - which is why foot and kitty appeared to blur differently.
 terminal = "~/.config/hypr/hyprland/scripts/launch_first_available.sh 'kitty -1' 'foot' 'alacritty' 'wezterm' 'konsole' 'kgx' 'uxterm' 'xterm'"
+
+-- Browser: Google Chrome (user request, 2026-10-02) for SUPER+W and SUPER+B.
+-- install.sh installs it; the rest are fallbacks so the keys still open a
+-- browser on a machine without Chrome.
+browser = "~/.config/hypr/hyprland/scripts/launch_first_available.sh 'google-chrome-stable' 'chromium' 'zen-browser' 'firefox'"

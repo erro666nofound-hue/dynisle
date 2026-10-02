@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Install or update Google Chrome from its AUR recipe.
+#
+#   ~/.config/quickshell/dynisle/scripts/update-chrome
+#
+# Chrome is not in Arch's official repositories, and a copy built from the AUR
+# is NOT updated by `pacman -Syu` - run this again now and then (it does
+# nothing when the installed version is already the newest).
+#
+# The recipe only repackages Google's own .deb from dl.google.com, checked
+# against a pinned sha512 (read through on 2026-10-02). makepkg runs as you
+# and asks for sudo only to install the finished package.
+set -euo pipefail
+
+if [[ $EUID -eq 0 ]]; then
+    echo "Run this as your normal user - makepkg refuses root." >&2
+    exit 1
+fi
+
+build="$(mktemp -d)"
+trap 'rm -rf "$build"' EXIT
+
+git clone --quiet --depth 1 https://aur.archlinux.org/google-chrome.git "$build/google-chrome"
+cd "$build/google-chrome"
+
+newest="$(sed -n 's/^pkgver=//p' PKGBUILD)-$(sed -n 's/^pkgrel=//p' PKGBUILD)"
+installed="$(pacman -Q google-chrome 2>/dev/null | cut -d' ' -f2 || true)"
+if [[ "$installed" == "$newest" ]]; then
+    echo "Google Chrome $installed is already the newest."
+    exit 0
+fi
+
+echo "Google Chrome ${installed:-not installed} -> $newest (download ~120 MB, a few minutes)"
+makepkg -si --noconfirm --needed
