@@ -57,6 +57,12 @@ PACKAGE_LIST=(
     kitty foot fish starship eza fastfetch python
     # file manager - SUPER + E opens it
     nautilus
+    # how every window looks: GTK theme (nautilus & co), icons, and the KDE
+    # platform theme Qt apps and the shell's icon lookup go through
+    # (hypr/hyprland/env.lua sets QT_QPA_PLATFORMTHEME=kde)
+    adw-gtk-theme papirus-icon-theme breeze breeze-icons plasma-integration
+    # what keybinds call: colour picker, media keys, killall, volume mixer
+    hyprpicker playerctl psmisc pavucontrol
     # fonts (Google Sans Flex is not packaged; it ships in fonts/)
     ttf-jetbrains-mono-nerd ttf-material-symbols-variable
     # Vietnamese typing
@@ -79,6 +85,10 @@ TRACKED=(
     fcitx5/config
     fcitx5/conf
     xdg-desktop-portal/hyprland-portals.conf
+    starship.toml
+    gtk-3.0/settings.ini
+    gtk-4.0/settings.ini
+    kdeglobals
 )
 
 # Never carried between machines: backups, this machine's display layout, and
@@ -208,6 +218,63 @@ run python3 "$REPO/scripts/blackhole.py"
 # Folders open in nautilus (from the browser's downloads, for example).
 run xdg-mime default org.gnome.Nautilus.desktop inode/directory
 
+# 5b. how windows look -------------------------------------------------------
+# The blur and see-through windows are Hyprland's (hypr/custom/dynisle-blur.lua)
+# plus kitty's own opacity, both copied above. This is what the apps read.
+say "Dark theme, icons and cursor for GTK and Qt apps"
+CURSOR=Bibata-Modern-Classic
+# libadwaita apps (nautilus) take their style from links into adw-gtk3, the
+# same links the original machine has.
+run mkdir -p "$CONFIG/gtk-4.0"
+for link in adw-gtk3-dark/gtk-4.0/gtk.css adw-gtk3-dark/gtk-4.0/gtk-dark.css \
+            adw-gtk3-dark/gtk-4.0/assets adw-gtk3/gtk-4.0/libadwaita.css \
+            adw-gtk3/gtk-4.0/libadwaita-tweaks.css; do
+    src="/usr/share/themes/$link" dst="$CONFIG/gtk-4.0/${link##*/}"
+    if [[ ! -e "$src" ]]; then
+        continue
+    fi
+    if [[ -e "$dst" && ! -L "$dst" ]]; then
+        run mkdir -p "$BACKUP/gtk-4.0"
+        run mv "$dst" "$BACKUP/gtk-4.0/"
+    fi
+    run ln -sfn "$src" "$dst"
+done
+# GTK 4 and the portal read these from dconf, not from settings.ini
+for kv in "color-scheme prefer-dark" "gtk-theme adw-gtk3-dark" "icon-theme Papirus" \
+          "cursor-theme $CURSOR" "cursor-size 24" \
+          "font-name Google Sans Flex Medium 11 @opsz=11,wght=500"; do
+    run gsettings set org.gnome.desktop.interface "${kv%% *}" "${kv#* }" \
+        || warn "gsettings could not set ${kv%% *} (no session bus yet?)"
+done
+# Qt apps: kdeglobals names breeze-plus-dark, which is AUR-only; without it,
+# use the dark Breeze icons instead of KDE's light default.
+if [[ -f "$CONFIG/kdeglobals" && ! -d /usr/share/icons/breeze-plus-dark ]]; then
+    run sed -i 's/^Theme=breeze-plus-dark$/Theme=breeze-dark/' "$CONFIG/kdeglobals"
+fi
+# The cursor (Bibata, GPL-3.0) is not in Arch's official repositories, so it
+# comes from its own GitHub release - the same files the original machine has.
+if [[ -d "$HOME/.local/share/icons/$CURSOR" ]]; then
+    note "cursor $CURSOR already installed"
+elif ((DRY)); then
+    note "[dry-run] download $CURSOR from github.com/ful1e5/Bibata_Cursor"
+else
+    mkdir -p "$HOME/.local/share/icons"
+    if curl -fsSL "https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/$CURSOR.tar.xz" \
+        | tar -xJ -C "$HOME/.local/share/icons"; then
+        note "cursor $CURSOR installed"
+    else
+        warn "could not download the $CURSOR cursor - the default one stays"
+    fi
+fi
+# XWayland apps find the cursor through the "default" theme
+run mkdir -p "$HOME/.local/share/icons/default"
+if ((DRY)); then
+    note "[dry-run] write ~/.local/share/icons/default/index.theme"
+else
+    printf '[Icon Theme]\nName=Default\nComment=Default Cursor Theme\nInherits=%s\n' "$CURSOR" \
+        > "$HOME/.local/share/icons/default/index.theme"
+fi
+
 # 6. things that need root --------------------------------------------------
 if ((SYSTEM)); then
     say "System files (sudo)"
@@ -241,4 +308,6 @@ cat <<'EOF'
 
     Keys: SUPER + D launcher · SUPER + R control centre · SUPER + S session
           SUPER + A wallpaper · Shift + Print region shot · SUPER + Print full
+          SUPER + E files (nautilus) · every other Hyprland keybind is the
+          same as on the machine this was copied from.
 EOF

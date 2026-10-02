@@ -1958,6 +1958,22 @@ a replacement for looking.
      by `iconPath(name, true)` until restart); the KDE
      `org.kde.KIconLoader.iconChanged` signal did not clear it.
 
+141. **install.sh carries the whole look, not just the shell** (2026-10-02,
+     user setting up a second machine). Added: packages adw-gtk-theme,
+     papirus-icon-theme, breeze, breeze-icons, plasma-integration (env.lua
+     sets QT_QPA_PLATFORMTHEME=kde - without it that setting does nothing),
+     hyprpicker, playerctl, psmisc, pavucontrol (keybinds call them); tracked
+     starship.toml, gtk-3.0/settings.ini, gtk-4.0/settings.ini, kdeglobals;
+     the gtk-4.0 links into adw-gtk3 that libadwaita apps (nautilus) read;
+     gsettings color-scheme/gtk-theme/icon-theme/cursor/font (GTK 4 and the
+     portal read dconf, not settings.ini); the Bibata cursor from its GitHub
+     release (AUR-only; the download was checked byte-identical to this
+     machine's copy). kdeglobals' breeze-plus-dark (AUR) becomes breeze-dark
+     when absent. Blur needed nothing new: Hyprland's (custom/dynisle-blur.lua)
+     and kitty's opacity were already in dots/. Verified by running the whole
+     installer against a fake HOME with gsettings stubbed out: keybinds,
+     blur, rules, kitty, gtk, kdeglobals, starship, fish all byte-identical.
+
 ## If you're about to contradict one of these
 
 Stop and re-read the linked file in full first. If the user is actually

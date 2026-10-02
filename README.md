@@ -8,18 +8,24 @@ notifications, wallpaper picker, session menu, screenshots.
 ## Install on a fresh Arch
 
 1. Install Arch (`archinstall` with the *minimal* profile is enough) and log in.
-2. Get `git`, clone this repo into place, and run the installer:
+2. One command - gets `git`, clones this repo into place, runs the installer:
 
    ```sh
-   sudo pacman -S --needed git
-   git clone https://github.com/erro666nofound-hue/dynisle ~/.config/quickshell/dynisle
-   ~/.config/quickshell/dynisle/install.sh
+   sudo pacman -S --needed git && git clone https://github.com/erro666nofound-hue/dynisle ~/.config/quickshell/dynisle && ~/.config/quickshell/dynisle/install.sh
    ```
 
 3. Reboot and log in on the tuigreet screen.
 
-`install.sh` only uses Arch's official repositories - no AUR helper. It backs
-up anything it replaces in `~/.config` to `~/.config/dynisle-backup-<date>/`.
+What it sets up: Hyprland with all the keybinds, window blur and
+see-through windows, the shell, kitty/foot/fish/starship and the fastfetch
+greeting, nautilus, the dark GTK theme (adw-gtk3) and Papirus icons for
+GTK apps, Breeze for Qt apps, the Bibata cursor, Google Sans Flex, and
+Vietnamese typing (fcitx5 + Bamboo).
+
+`install.sh` installs packages from Arch's official repositories only - no
+AUR helper. The one thing that is not packaged there, the Bibata cursor, comes
+from its own GitHub release. It backs up anything it replaces in `~/.config`
+to `~/.config/dynisle-backup-<date>/`.
 Try `./install.sh --dry-run` first to see every step without changing
 anything.
 
