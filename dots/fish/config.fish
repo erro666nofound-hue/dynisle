@@ -1,3 +1,9 @@
+# Programs installed per user (Claude Code's own installer, pip --user...) live
+# in ~/.local/bin. This machine got it onto PATH from ~/.profile, which is not
+# carried to other machines - so fish adds it itself. Skipped if it does not
+# exist yet; never added twice.
+fish_add_path -g ~/.local/bin
+
 # Commands to run in interactive sessions can go here
 if status is-interactive
     # No greeting
