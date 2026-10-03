@@ -105,6 +105,8 @@ EXCLUDES=(
     --exclude='*.bak*' --exclude='*.old' --exclude='*.new'
     --exclude='_unused/' --exclude='monitors.*' --exclude='workspaces.*'
     --exclude='lumen.conf' --exclude='__restore_video_wallpaper.sh'
+    # the lock screen's sizes for THIS machine's scale (fix.sh writes it)
+    --exclude='scale.conf'
     # lives only in the repo; --collect's --delete must never remove it
     --exclude='LICENSE-*'
 )
@@ -251,6 +253,8 @@ fi
 # Each screen's scale, from its real size: hypr/monitors.lua belongs to one
 # machine and is never copied, and without it Hyprland runs every screen at
 # scale 1 - everything tiny on a sharper screen. fix.sh redoes this any time.
+# It also writes hypr/hyprlock/scale.conf, since hyprlock ignores the scale;
+# with monitors.lua already there, that one is still made from its scale.
 say "Screen scale"
 if ((DRY)); then
     python3 "$REPO/scripts/display-scale.py" --dry-run | sed -n '1,/^$/p'

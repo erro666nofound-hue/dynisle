@@ -10,6 +10,9 @@ farther away, so they use 110 instead (a 27" 4K monitor gets 1.5).
 
 Writes ~/.config/hypr/monitors.lua (the file nwg-displays also writes, and
 that hyprland.lua loads), backing up the old one, then reloads Hyprland.
+Also writes ~/.config/hypr/hyprlock/scale.conf: hyprlock does NOT apply the
+monitor scale (its sizes are real pixels - read in hyprlock v0.9.6's source),
+so the lock screen's clock, date and password box get multiplied here.
 
     display-scale.py              every connected screen, automatically
     display-scale.py 1.5          this scale on every screen
@@ -22,6 +25,7 @@ from the EDID in /sys/class/drm - so install.sh can run it from a text console.
 import datetime, glob, json, math, os, shutil, subprocess, sys
 
 MONITORS = os.path.expanduser("~/.config/hypr/monitors.lua")
+LOCK = os.path.expanduser("~/.config/hypr/hyprlock/scale.conf")
 BASE_BUILT_IN, BASE_EXTERNAL = 118.0, 110.0
 BUILT_IN = ("eDP", "LVDS", "DSI")
 
@@ -84,12 +88,62 @@ def pick(screen):
     return clean(min(max(target, 1.0), 3.0), w, h), dpi
 
 
+def lock_text(scale):
+    """hyprlock.conf's sizes at scale 1, multiplied. hyprlock.conf has the
+    same numbers as defaults, so a missing file only means a small lock."""
+    n = lambda v: round(v * scale)
+    return "\n".join([
+        f"# Written by dynisle's fix.sh: the lock screen at scale {scale:g}, because",
+        "# hyprlock uses real pixels and ignores the monitor scale. Rerun fix.sh to redo.",
+        f"$lock_clock_size = {n(96)}",
+        f"$lock_clock_pos = 0, {n(130)}",
+        f"$lock_date_size = {n(16)}",
+        f"$lock_date_pos = 0, {n(52)}",
+        f"$lock_field_size = {n(340)}, {n(58)}",
+        f"$lock_field_round = {n(29)}",
+        f"$lock_field_pos = 0, {n(-70)}",
+        ""])
+
+
+def write_lock(chosen, dry):
+    """One size for the lock on every screen: the built-in one's, else the first."""
+    if not chosen:
+        return
+    name, scale = next((c for c in chosen if c[0].startswith(BUILT_IN)), chosen[0])
+    text = lock_text(scale)
+    if dry:
+        print("\n" + text)
+        return
+    os.makedirs(os.path.dirname(LOCK), exist_ok=True)
+    with open(LOCK + ".tmp", "w") as f:
+        f.write(text)
+    os.replace(LOCK + ".tmp", LOCK)
+    print(f"  wrote {LOCK} (lock screen at scale {scale:g}, from {name})")
+
+
+def scales_in_monitors_file():
+    """(output, scale) pairs from an existing monitors.lua, ours or nwg-displays'."""
+    import re
+    try:
+        text = open(MONITORS).read()
+    except OSError:
+        return []
+    out = []
+    for block in re.findall(r"hl\.monitor\(\{(.*?)\}\)", text, re.S):
+        name = re.search(r'output\s*=\s*"([^"]*)"', block)
+        scale = re.search(r"scale\s*=\s*([0-9.]+)", block)
+        if name and scale and name.group(1):
+            out.append((name.group(1), float(scale.group(1))))
+    return out
+
+
 def lua(screens, forced):
     now = datetime.date.today().isoformat()
     out = [f"-- Written by dynisle's fix.sh on {now}: each screen's scale comes from its",
            "-- real size, so everything is as big as on the 13.3\" laptop dynisle was made",
            "-- on. Rerun fix.sh after plugging in another screen; nwg-displays may also",
            "-- rewrite this file. Screens not listed here get scale 1.", ""]
+    chosen = []
     for s in screens:
         scale, dpi = (forced, None) if forced else pick(s)
         if forced:
@@ -106,7 +160,8 @@ def lua(screens, forced):
         if forced and abs(scale - forced) > 0.001:
             print(f"             {forced:g} does not divide {s['w']}x{s['h']} into whole pixels;"
                   f" {scale:.3f} is the nearest that does")
-    return "\n".join(out)
+        chosen.append((s["name"], scale))
+    return "\n".join(out), chosen
 
 
 def main():
@@ -119,6 +174,8 @@ def main():
 
     if if_missing and os.path.exists(MONITORS):
         print(f"  {MONITORS} already exists - left alone")
+        if not os.path.exists(LOCK):
+            write_lock(scales_in_monitors_file() or [("", 1.0)], dry)
         return
     screens = from_hyprland() or from_edid()
     # Hyprland can report 0 mm; the EDID usually still has the size
@@ -129,9 +186,10 @@ def main():
     if not screens:
         sys.exit("no connected screen found (no Hyprland running and no EDID readable)")
 
-    text = lua(screens, forced)
+    text, chosen = lua(screens, forced)
     if dry:
         print("\n" + text)
+        write_lock(chosen, dry)
         return
     os.makedirs(os.path.dirname(MONITORS), exist_ok=True)
     if os.path.exists(MONITORS):
@@ -143,6 +201,7 @@ def main():
         f.write(text)
     os.replace(tmp, MONITORS)
     print(f"  wrote {MONITORS}")
+    write_lock(chosen, dry)
     if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
         subprocess.run(["hyprctl", "reload"], capture_output=True)
         print("  Hyprland reloaded")

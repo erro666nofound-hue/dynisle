@@ -2000,6 +2000,27 @@ a replacement for looking.
      Checked: this machine -> 1.0 both ways; Hyprland's `hyprctl eval`
      accepted the generated rule on a fake output name; nwg-displays added.
 
+144. **Island hidden by a MAXIMISED window on Quickshell 0.3.1** (2026-10-03,
+     new machine: "open a terminal on workspace 1, island gone until SUPER+F
+     twice"). Hyprland's workspace `hasfullscreen` is true for maximised too
+     (this machine's kitty: client `fullscreen: 1`, workspace hasfullscreen
+     true, window still at y=55 under the island). 0.3.1 keeps the flag live
+     (fullscreen event + refreshWorkspaces); 0.2.1 here never showed it, so
+     the island had never hidden here. Island.qml now treats the flag as a
+     trigger only and hides when `hyprctl clients -j` has a window on that
+     workspace with `fullscreen & 2` (real fullscreen); rechecks also on
+     fullscreen/openwindow/closewindow/movewindowv2 raw events.
+145. **hyprlock ignores the monitor scale.** v0.9.6 widgets use real pixels
+     (no `scale` in Label/PasswordInputField; size/position accept `%` of the
+     monitor, font_size does not). So display-scale.py also writes
+     hypr/hyprlock/scale.conf ($lock_* sizes x scale, built-in screen's
+     scale), excluded from dots/. hyprlock.conf defines the scale-1 values
+     first, then `source`s it. Checked against libhyprlang with hyprlock's
+     own source= handler: file present -> overrides; file missing -> one
+     logged error, defaults used, rest of the config parsed (hyprlock then
+     "proceeds ignoring faulty entries" - it still locks). Also: 0.9.6 does
+     have `shape` and `image` widgets; the old "exactly three" comment was wrong.
+
 ## If you're about to contradict one of these
 
 Stop and re-read the linked file in full first. If the user is actually

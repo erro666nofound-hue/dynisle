@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Hyprland
+import Quickshell.Io
 import qs.modules.common
 import qs.services
 import qs.modules.island
@@ -25,7 +26,20 @@ PanelWindow {
     //  - and it disappears entirely when something on its monitor goes
     //    fullscreen, instead of sitting on top of a game or a video.
     readonly property var hyprMonitor: root.screen ? Hyprland.monitorFor(root.screen) : null
-    readonly property bool fullscreenActive: root.hyprMonitor?.activeWorkspace?.hasFullscreen ?? false
+
+    // Hyprland's `hasfullscreen` is ALSO true for a MAXIMISED window - and a
+    // maximised window already sits below the island's reserved strip. On
+    // Quickshell 0.3.1 (which keeps the flag up to date; 0.2.1 did not) that
+    // hid the island whenever a terminal was maximised, until SUPER + F twice
+    // cleared the state (2026-10-03). So the flag only says "go and look":
+    // the island hides when a window on this workspace is in REAL fullscreen,
+    // Hyprland's mode bit 2 (0 none, 1 maximised, 2 fullscreen).
+    readonly property bool workspaceFlag: root.hyprMonitor?.activeWorkspace?.hasFullscreen ?? false
+    readonly property int workspaceId: root.hyprMonitor?.activeWorkspace?.id ?? -1
+    property bool fullscreenActive: false
+
+    onWorkspaceFlagChanged: fullscreenRecheck.restart()
+    onWorkspaceIdChanged: fullscreenRecheck.restart()
 
     visible: !root.fullscreenActive
 
@@ -364,6 +378,48 @@ PanelWindow {
     // `activewindow` arriving about half a second after opening closed the
     // panel on its own, every time. Clicking away still dismisses it, through
     // `dismissArea`, which is the mechanism that was actually asked for.
+    // Maximised -> fullscreen leaves the workspace flag true the whole time,
+    // so the window events themselves trigger a look too.
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event): void {
+            if (["fullscreen", "openwindow", "closewindow", "movewindowv2"].includes(event.name))
+                fullscreenRecheck.restart();
+        }
+    }
+
+    Timer {
+        id: fullscreenRecheck
+
+        interval: 40
+        onTriggered: {
+            if (!root.workspaceFlag) {
+                root.fullscreenActive = false;
+                return;
+            }
+            fullscreenProbe.running = false;
+            fullscreenProbe.running = true;
+        }
+    }
+
+    Process {
+        id: fullscreenProbe
+
+        command: ["hyprctl", "clients", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const ws = root.workspaceId;
+                    root.fullscreenActive = root.workspaceFlag && JSON.parse(text)
+                        .some(c => c.workspace?.id === ws && (c.fullscreen & 2) !== 0);
+                } catch (e) {
+                    root.fullscreenActive = root.workspaceFlag;
+                }
+            }
+        }
+    }
+
     Connections {
         target: Hyprland
         enabled: IslandState.panel === "launcher" || IslandState.panel === "control"
