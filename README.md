@@ -25,7 +25,9 @@ plugging in another monitor, say):
 ~/.config/quickshell/dynisle/fix.sh 1.5      # or a scale you choose
 ```
 
-`nwg-displays` (in the launcher) changes resolution and position too.
+`nwg-displays` ("Displays Settings" in the launcher) changes resolution and
+position too. hyprlock ignores the scale, so after changing it there, run
+`fix.sh --lock` to resize the lock screen to match.
 
 What it sets up: Hyprland with all the keybinds, window blur and
 see-through windows, the shell, kitty/foot/fish/starship and the fastfetch

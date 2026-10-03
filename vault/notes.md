@@ -2020,6 +2020,10 @@ a replacement for looking.
      logged error, defaults used, rest of the config parsed (hyprlock then
      "proceeds ignoring faulty entries" - it still locks). Also: 0.9.6 does
      have `shape` and `image` widgets; the old "exactly three" comment was wrong.
+     `fix.sh --lock` rewrites only scale.conf from monitors.lua's scale (for
+     after nwg-displays). "Displays Settings" = nwg-displays, installed on this
+     machine 2026-06-27 by the old dots, NOT by dynisle until f193bcc - the
+     new machine was set up before that, so it had none.
 
 ## If you're about to contradict one of these
 

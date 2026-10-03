@@ -5,6 +5,8 @@
 #                                                  its real size (pixels per inch)
 #   ~/.config/quickshell/dynisle/fix.sh 1.5        use this scale instead
 #   ~/.config/quickshell/dynisle/fix.sh --dry-run  only show what it would do
+#   ~/.config/quickshell/dynisle/fix.sh --lock     after changing the scale in
+#                                                  Displays Settings: resize the lock screen to match
 #
 # Sizes in dynisle, kitty, Chrome, nautilus... are all logical pixels that
 # Hyprland multiplies by the monitor's scale. This picks the scale that makes

@@ -18,6 +18,8 @@ so the lock screen's clock, date and password box get multiplied here.
     display-scale.py 1.5          this scale on every screen
     display-scale.py --dry-run    print the file instead of writing it
     display-scale.py --if-missing do nothing when monitors.lua exists (install.sh)
+    display-scale.py --lock       only resize the lock screen, to the scale that
+                                  monitors.lua already has (after nwg-displays)
 
 The screens come from `hyprctl monitors` when Hyprland is running, otherwise
 from the EDID in /sys/class/drm - so install.sh can run it from a text console.
@@ -171,6 +173,13 @@ def main():
     forced = float(numbers[0]) if numbers else None
     if forced is not None and not 0.5 <= forced <= 4:
         sys.exit("a scale between 0.5 and 4, e.g. 1.25 or 1.5")
+
+    if "--lock" in args:
+        chosen = scales_in_monitors_file()
+        if not chosen:
+            sys.exit(f"no scale found in {MONITORS} - run fix.sh without --lock first")
+        write_lock(chosen, dry)
+        return
 
     if if_missing and os.path.exists(MONITORS):
         print(f"  {MONITORS} already exists - left alone")
